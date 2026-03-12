@@ -96,7 +96,7 @@ Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada
 
 ---
 
-## 📑 Lisensi & Kredit
+## Oleh: 
 - **Dibuat Oleh:** Muhammad Fadhil YZ & Asisten 
 - **Tujuan:** Projek Pengembangan Sistem Informasi
 - **Status:** Open Source 
@@ -106,7 +106,7 @@ Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada
 *Catatan Penting:* Website ini berstatus **Demo**. Data Mahasiswa disimpan menggunakan **Database Lokal (SQLite)** dan belum terintegrasi dengan Database Cloud. Data PDDIKTI yang tampil berasal dari API publik Kemdikbud.
 -
 
-## 👨‍💻 Teknologi
+## Teknologi
 
 | Layer | Teknologi |
 |-------|-----------|
