@@ -12,28 +12,27 @@
 
 ---
 
-## 📌 Tentang Proyek
+## Tentang Proyek
 
 Sistem ini dikembangkan untuk memudahkan pengelola perguruan tinggi dalam memverifikasi status kelulusan alumni secara akurat. Berbeda dengan sistem pencatatan biasa, aplikasi ini menggunakan **Integrasi API Langsung** ke server PDDIKTI Kemendikbudristek untuk menyajikan data yang selalu mutakhir.
 
-### 🔌 Teknologi Integrasi Data
+### Teknologi Integrasi Data
 Proyek ini **bukan** menggunakan library pihak ketiga (wrapper), melainkan menggunakan **API PDDIKTI secara langsung** (`api-pddikti.kemdiktisaintek.go.id`) melalui:
 - **Laravel HTTP Client (Guzzle)** untuk request server-side.
 - **AJAX (Fetching API)** untuk pemuatan data detail secara asinkron agar performa website tetap ringan dan cepat.
 
 ---
 
-## 🚀 Fitur Unggulan
+## Fitur Unggulan
 
-- ⚡ **Real-Time API Search** — Mencari data mahasiswa langsung ke database nasional Kemdikbud.
-- 🔄 **Async Detail Loader** — Memuat detail "Angkatan" dan "Status Lulus" secara otomatis di latar belakang.
-- 🎯 **Smart Filtering** — Filter dinamis yang hanya muncul saat hasil pencarian tersedia.
-- 🛡️ **Demo Protection** — Modal peringatan status pengembangan untuk pengguna baru.
-- 📊 **Dual Source Integration** — Menggabungkan hasil pencarian dari database lokal (Manual/CSV) dan PDDIKTI secara transparan.
+-  **Real-Time API Search** — Mencari data mahasiswa langsung ke database nasional Kemdikbud.
+-  **Async Detail Loader** — Memuat detail "Angkatan" dan "Status Lulus" secara otomatis di latar belakang.
+-  **Smart Filtering** — Filter dinamis yang hanya muncul saat hasil pencarian tersedia.
+-  **Dual Source Integration** — Menggabungkan hasil pencarian dari database lokal (Manual/CSV) dan PDDIKTI secara transparan.
 
 ---
 
-## 🧪 Hasil Pengujian (Aspek Kualitas & QA)
+## Hasil Pengujian (Aspek Kualitas & QA)
 
 Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada perancangan sistem (Daily Project 2).
 
@@ -69,7 +68,7 @@ Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada
 
 ---
 
-## ⚙️ Cara Menjalankan
+## Cara Menjalankan
 
 1.  **Clone & Install**
     ```bash
@@ -98,9 +97,9 @@ Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada
 ---
 
 ## 📑 Lisensi & Kredit
-- **Dibuat Oleh:** [Nama Anda / Tim]
-- **Tujuan:** Daily Project 3 - Pengembangan Sistem Informasi
-- **Status:** Open Source - MIT License
+- **Dibuat Oleh:** Muhammad Fadhil YZ & Asisten 
+- **Tujuan:** Projek Pengembangan Sistem Informasi
+- **Status:** Open Source 
 
 ---
 
@@ -119,6 +118,3 @@ Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada
 
 ---
 
-## 📄 Lisensi
-
-MIT License © 2026 — Dibuat untuk Daily Project 3
