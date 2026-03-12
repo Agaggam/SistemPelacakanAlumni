@@ -1,0 +1,14 @@
+/node_modules
+/vendor
+/.env
+/storage/*.key
+/public/storage
+/public/build
+.git
+.github
+Dockerfile
+.dockerignore
+npm-debug.log
+composer.lock
+package-lock.json
+database/database.sqlite
