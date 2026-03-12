@@ -103,7 +103,7 @@ Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada
 
 ---
 
-*Catatan Penting:* Website ini berstatus **Demo**. Data Mahasiswa disimpan menggunakan **Database Lokal (SQLite)** dan belum terintegrasi dengan Database Cloud. Data PDDIKTI yang tampil berasal dari API publik Kemdikbud.
+*Catatan Penting:* Website ini berstatus **Demo**. Data Mahasiswa disimpan menggunakan **Database Lokal (SQLite)** & blum terintegrasi dengan DB Cloud. Data PDDIKTI yang tampil berasal dari API publik Kemdikbud.
 -
 
 ## Teknologi
