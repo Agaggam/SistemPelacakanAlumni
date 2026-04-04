@@ -7,7 +7,7 @@
     <title>@yield('title', 'Sistem Pelacakan Alumni')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -364,42 +364,41 @@
             <span>Dashboard Admin</span>
         </div>
         <nav class="sidebar-nav">
-            <div class="nav-section-label">Menu Utama</div>
+            <div class="nav-section-label">MENU UTAMA</div>
             <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <span class="icon">📊</span> Dashboard
             </a>
 
-            <div class="nav-section-label" style="margin-top:12px">🌐 PDDIKTI</div>
-            <a href="{{ route('pddikti.search') }}" class="nav-item {{ request()->routeIs('pddikti.*') ? 'active' : '' }}"
-                style="{{ request()->routeIs('pddikti.*') ? '' : 'border: 1px solid rgba(99,102,241,0.3);' }}">
+            <div class="nav-section-label" style="margin-top:20px">🌐 PDDIKTI</div>
+            <a href="{{ route('pddikti.search') }}" class="nav-item {{ request()->routeIs('pddikti.search') || request()->routeIs('pddikti.detail') ? 'active' : '' }}">
                 <span class="icon">🔎</span> Cari di PDDIKTI
             </a>
 
-            <div class="nav-section-label" style="margin-top:12px">Tracking Lokal</div>
-            <a href="{{ route('alumni.index') }}" class="nav-item {{ request()->routeIs('alumni.*') ? 'active' : '' }}">
+            <div class="nav-section-label" style="margin-top:20px">TRACKING LOKAL</div>
+            <a href="{{ route('alumni.index') }}" class="nav-item {{ request()->routeIs('alumni.index') || request()->routeIs('alumni.show') || request()->routeIs('alumni.edit') ? 'active' : '' }}">
                 <span class="icon">👥</span> Data Alumni Tersimpan
             </a>
-
-
-            <a href="{{ route('alumni.create') }}" class="nav-item">
+            <a href="{{ route('alumni.create') }}" class="nav-item {{ request()->routeIs('alumni.create') ? 'active' : '' }}">
                 <span class="icon">➕</span> Tambah Alumni Manual
             </a>
         </nav>
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+        <div class="sidebar-footer" style="padding: 15px 20px; border-top: 1px solid var(--border);">
+            <div class="user-info" style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                <div class="user-avatar" style="width: 40px; height: 40px; border-radius: 10px; background: #6366f1; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px;">A</div>
                 <div>
-                    <div class="user-name">{{ auth()->user()->name }}</div>
-                    <div class="user-role">Administrator</div>
+                    <div class="user-name" style="font-size: 13px; font-weight: 700; color: #f1f5f9;">Admin Pelacakan</div>
+                    <div class="user-role" style="font-size: 11px; color: #64748b;">Administrator</div>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-                <a href="{{ url('/') }}" class="public-btn" style="margin-top: 0; flex: 1;" title="Kembali ke Halaman Publik">
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url('/') }}" class="public-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: 12px; font-weight: 600;">
                     🌐 Publik
                 </a>
-                <form action="{{ route('logout') }}" method="POST" style="margin: 0; flex: 1;">
+                <form action="{{ route('logout') }}" method="POST" style="flex: 1;">
                     @csrf
-                    <button type="submit" class="logout-btn" style="margin-top: 0; width: 100%;" title="Keluar">🚪 Keluar</button>
+                    <button type="submit" class="logout-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; color: #94a3b8; background: transparent; font-size: 12px; font-weight: 600; cursor: pointer;">
+                        🚪 Keluar
+                    </button>
                 </form>
             </div>
         </div>
@@ -413,7 +412,9 @@
                 <div class="topbar-subtitle">@yield('page-subtitle', 'Sistem Pelacakan Alumni')</div>
             </div>
             <div class="flex items-center gap-3">
-                <span class="chip">🕐 {{ now()->format('d M Y, H:i') }}</span>
+                <div style="background: #1e2235; border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #f1f5f9;">
+                    <span style="opacity: 0.7;">🕒</span> {{ now()->format('d M Y, H:i') }}
+                </div>
             </div>
         </header>
 

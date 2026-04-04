@@ -19,54 +19,22 @@ class SearchController extends Controller
     ];
 
     /**
-     * Halaman Search Mahasiswa utama — landing page aplikasi.
-     * Publik (tanpa login), gabungan data lokal + PDDIKTI real-time.
+     * HALAMAN 1 — Search Mahasiswa (PDDIKTI)
+     * Fokus: Data Resmi (Real-Time) dari API PDDIKTI.
      */
     public function index(Request $request)
     {
-        $keyword   = trim($request->input('q', ''));
-        $angkatan  = $request->input('angkatan');
-        $prodi     = $request->input('prodi');
-        $sort      = $request->input('sort', 'nama_asc');
-        $sumber    = $request->input('sumber', 'semua'); // semua | lokal | pddikti
+        $keyword = trim($request->input('q', ''));
+        $angkatan = $request->input('angkatan');
+        $prodi = $request->input('prodi');
+        $sort = $request->input('sort', 'nama_asc');
 
-        // ── 1. Data Lokal (alumni tersimpan dari DB) ──────────────────────────
-        $localQuery = Alumni::query();
-        if ($keyword) {
-            $localQuery->where(function ($q) use ($keyword) {
-                $q->where('nama', 'like', "%{$keyword}%")
-                  ->orWhere('nim', 'like', "%{$keyword}%")
-                  ->orWhere('prodi', 'like', "%{$keyword}%");
-            });
-        }
-        if ($angkatan)   $localQuery->where('angkatan', $angkatan);
-        if ($prodi)      $localQuery->where('prodi', 'like', "%{$prodi}%");
-
-        $localAlumniModels = $localQuery->get();
-        // Convert to shared array format
-        $localAlumni = [];
-        foreach ($localAlumniModels as $a) {
-            $localAlumni[] = [
-                'id'       => $a->id,
-                'nama'     => $a->nama,
-                'nim'      => $a->nim,
-                'prodi'    => $a->prodi,
-                'pt'       => 'Universitas Brawijaya', // or get from config/model if needed
-                'jenjang'  => '-',
-                'status'   => $a->status,
-                'angkatan' => $a->angkatan,
-                'tahun_lulus' => $a->tahun_lulus,
-                'sumber'   => 'lokal',
-                'model'    => $a, // pass model for route generation in view
-            ];
-        }
-
-        // ── 2. Data PDDIKTI (real-time, hanya jika ada keyword & sumber ≠ lokal) ─
-        $pddiktiResults = [];
-        $pddiktiError   = null;
+        // ── 1. Data PDDIKTI (Layer 1 - Official) ──────────────────────────
+        $results = [];
+        $pddiktiError = null;
         $pddiktiSearched = false;
 
-        if ($keyword && $sumber !== 'lokal') {
+        if ($keyword) {
             $pddiktiSearched = true;
             try {
                 $response = Http::withHeaders(self::HEADERS)
@@ -78,82 +46,76 @@ class SearchController extends Controller
                     $raw = $response->json();
                     $items = $raw['mahasiswa'] ?? (isset($raw[0]) ? $raw : []);
                     
-                    // Log the first item to see the data structure
-                    if (!empty($items) && is_array($items[0])) {
-                        \Illuminate\Support\Facades\Log::info('PDDIKTI ITEM SAMPLE:', $items[0]);
-                    }
-
                     foreach ($items as $item) {
                         if (!is_array($item)) continue;
                         $nim = $item['nim'] ?? null;
                         
-                        // Extract angkatan: try explicit field, then from 'terdaftar', then fallback to 4 chars of NIM if it looks like a year
                         $angkatanApi = $item['angkatan'] ?? $item['terdaftar']['angkatan'] ?? null;
                         if (!$angkatanApi && $nim && preg_match('/^(20[0-9]{2}|19[0-9]{2})/', $nim, $matches)) {
                             $angkatanApi = $matches[1];
                         }
 
-                        // Filter manually for PDDIKTI results based on the search form
+                        // Filter by dropdowns
                         $passAngkatan = !$angkatan || $angkatanApi == $angkatan;
-                        $passProdi    = !$prodi || stripos($item['nama_prodi'] ?? $item['prodi'] ?? '', $prodi) !== false;
+                        $passProdi = !$prodi || stripos($item['nama_prodi'] ?? $item['prodi'] ?? '', $prodi) !== false;
 
-                        $adaDiLokal = $nim && $localAlumniModels->where('nim', $nim)->isNotEmpty();
-                        if (!$adaDiLokal && $passAngkatan && $passProdi) {
-                            $pddiktiResults[] = [
-                                'id'       => $item['id'] ?? null,
-                                'nama'     => $item['nama_mahasiswa'] ?? $item['nama'] ?? '-',
-                                'nim'      => $nim ?? '-',
-                                'prodi'    => $item['nama_prodi'] ?? $item['prodi'] ?? '-',
-                                'pt'       => $item['nama_pt'] ?? $item['pt'] ?? '-',
-                                'jenjang'  => $item['jenjang'] ?? null,
-                                'status'   => '-',
-                                'status_mhs' => $item['status'] ?? $item['status_mahasiswa'] ?? $item['status_mahasiswa_saat_ini'] ?? $item['status_terakhir'] ?? null,
+                        if ($passAngkatan && $passProdi) {
+                            $results[] = [
+                                'id' => $item['id'] ?? null,
+                                'nama' => $item['nama_mahasiswa'] ?? $item['nama'] ?? '-',
+                                'nim' => $nim ?? '-',
+                                'prodi' => $item['nama_prodi'] ?? $item['prodi'] ?? '-',
+                                'pt' => $item['nama_pt'] ?? $item['pt'] ?? '-',
+                                'jenjang' => $item['jenjang'] ?? null,
+                                'status' => $item['status'] ?? $item['status_mahasiswa'] ?? $item['status_terakhir'] ?? '-',
                                 'angkatan' => $angkatanApi,
-                                'tahun_lulus' => null, // PDDIKTI search list doesn't return tahun_lulus
-                                'sumber'   => 'pddikti',
-                                'model'    => null,
+                                'sumber' => 'pddikti',
                             ];
                         }
                     }
                 }
             } catch (\Exception $e) {
                 Log::warning('[Search PDDIKTI] ' . $e->getMessage());
-                $pddiktiError = 'Tidak dapat menghubungi PDDIKTI saat ini.';
+                $pddiktiError = 'Layanan PDDIKTI sedang sibuk, silakan coba lagi.';
             }
         }
 
-        // ── 3. Combine and Sort Results ──────────────────────────────────────────
-        $allResults = array_merge($localAlumni, $pddiktiResults);
-        
-        // Sorting logic for array
-        usort($allResults, function($a, $b) use ($sort) {
-            $angkatanA = (int) ($a['angkatan'] ?? 0);
-            $angkatanB = (int) ($b['angkatan'] ?? 0);
-            $namaA     = $a['nama'] ?? '';
-            $namaB     = $b['nama'] ?? '';
-
-            switch($sort) {
-                case 'angkatan_asc':
-                    return $angkatanA <=> $angkatanB;
-                case 'angkatan_desc':
-                    return $angkatanB <=> $angkatanA;
-                case 'nama_desc':
-                    return strcasecmp($namaB, $namaA);
-                case 'nama_asc':
-                default:
-                    return strcasecmp($namaA, $namaB);
-            }
+        // ── 2. Sorting ────────────────────────────────────────────────────
+        usort($results, function($a, $b) use ($sort) {
+            if ($sort == 'nama_asc') return strcasecmp($a['nama'], $b['nama']);
+            if ($sort == 'nama_desc') return strcasecmp($b['nama'], $a['nama']);
+            return 0;
         });
 
-        // ── 4. Filter opsi untuk dropdown (Hanya dari hasil pencarian saat ini) ──────
-        $angkatanList = collect(array_unique(array_filter(array_column($allResults, 'angkatan'))))->sortDesc()->values();
-        $prodiList    = collect(array_unique(array_filter(array_column($allResults, 'prodi'))))->sort()->values();
+        $angkatanList = collect(array_unique(array_filter(array_column($results, 'angkatan'))))->sortDesc()->values();
+        $prodiList = collect(array_unique(array_filter(array_column($results, 'prodi'))))->sort()->values();
 
-        return view('search.index', compact(
-            'keyword', 'angkatan', 'prodi', 'sort', 'sumber',
-            'localAlumni', 'pddiktiResults', 'allResults', 'pddiktiError', 'pddiktiSearched',
-            'angkatanList', 'prodiList'
-        ));
+        return view('search.index', compact('keyword', 'angkatan', 'prodi', 'sort', 'results', 'pddiktiError', 'pddiktiSearched', 'angkatanList', 'prodiList'));
+    }
+
+    /**
+     * Public detail page: tampilkan detail mahasiswa dari PDDIKTI (public layout).
+     */
+    public function pddiktiDetail(string $id)
+    {
+        try {
+            $response = Http::withHeaders(self::HEADERS)
+                ->withOptions(['verify' => false])
+                ->timeout(12)
+                ->get(self::API_BASE . '/detail/mhs/' . urlencode($id));
+
+            if (!$response->successful() || empty($response->json())) {
+                return back()->with('error', 'Data tidak ditemukan di PDDIKTI.');
+            }
+
+            $data = $response->json();
+            $detail = isset($data['nim']) ? $data : ($data[0] ?? $data);
+
+            return view('search.detail', compact('detail', 'id'));
+        } catch (\Exception $e) {
+            Log::warning('[Public PDDIKTI Detail] ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghubungi server PDDIKTI.');
+        }
     }
 
     /**

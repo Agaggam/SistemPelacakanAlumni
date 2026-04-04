@@ -115,16 +115,7 @@
             margin-bottom: 16px;
         }
 
-        .hint-box {
-            margin-top: 20px;
-            padding: 12px 14px;
-            background: rgba(99,102,241,0.08);
-            border: 1px solid rgba(99,102,241,0.2);
-            border-radius: 10px;
-            font-size: 12px;
-            color: #818cf8;
-        }
-        .hint-box strong { color: #a5b4fc; }
+
     </style>
 </head>
 <body>
@@ -164,11 +155,7 @@
                 <button type="submit" class="btn-login">🚀 Masuk</button>
             </form>
 
-            <div class="hint-box">
-                <strong>Akun Demo:</strong><br>
-                👑 <strong>Admin</strong> — admin@alumni.ac.id | password<br>
-                👤 <strong>User</strong> — user@alumni.ac.id | password
-            </div>
+
 
             <div style="text-align:center; margin-top:16px;">
                 <a href="{{ route('search') }}" style="font-size:12px; color:#64748b; text-decoration:none;">

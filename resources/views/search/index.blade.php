@@ -5,25 +5,32 @@
 @section('content')
 
 {{-- HERO --}}
-<div class="hero">
-    <h1>🔎 Cari Alumni</h1>
-    <p>Cari data mahasiswa & alumni dari database kampus dan PDDIKTI secara real-time</p>
+<div class="hero" style="padding-bottom: 20px;">
+    <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.4));">🔎</div>
+    <h1 style="font-size: 42px; font-weight: 800; letter-spacing: -1.5px; background: linear-gradient(to right, #a855f7, #d8b4fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Cari Alumni
+    </h1>
+    <p style="font-size: 16px; color: var(--muted); max-width: 550px; margin: 12px auto 0; line-height: 1.6;">
+        Cari data mahasiswa & alumni dari PDDIKTI secara real-time
+    </p>
 </div>
 
 {{-- SEARCH FORM --}}
-<div class="search-box">
+<div style="background: rgba(30, 34, 53, 0.6); backdrop-filter: blur(10px); border-radius: 20px; padding: 28px; border: 1px solid rgba(168, 85, 247, 0.1); margin-bottom: 30px;">
     <form method="GET" action="{{ route('search') }}" id="searchForm">
-        <div class="search-row">
+        <div style="background: #0f1117; border-radius: 14px; padding: 5px; display: flex; align-items: center; gap: 8px;">
             <input type="text" name="q" class="search-input" value="{{ $keyword }}"
-                placeholder="Ketik nama, NIM, atau program studi..." autofocus autocomplete="off">
-            <button type="submit" class="btn btn-primary">🔍 Cari</button>
+                placeholder="Ketik nama, NIM, atau program studi..." autofocus autocomplete="off" required
+                style="border: none; background: transparent; padding: 14px 22px; flex: 1;">
+            <button type="submit" class="btn btn-primary" style="background: #6366f1; border-radius: 10px; padding: 12px 28px; font-weight: 700;">
+                🔎 Cari
+            </button>
             @if($keyword || $angkatan || $prodi)
-                <a href="{{ route('search') }}" class="btn btn-outline">✕ Reset</a>
+                <a href="{{ route('search') }}" class="btn btn-outline" style="border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px;">✕</a>
             @endif
         </div>
 
-        @if($keyword || $angkatan || $prodi)
-        <div class="filter-row">
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; align-items: flex-end; padding: 0 5px;">
             <div class="filter-group">
                 <div class="filter-label">Angkatan</div>
                 <select name="angkatan" class="filter-select" onchange="this.form.submit()">
@@ -45,129 +52,81 @@
             <div class="filter-group">
                 <div class="filter-label">Urutkan</div>
                 <select name="sort" class="filter-select" onchange="this.form.submit()">
-                    <option value="nama_asc"       {{ $sort == 'nama_asc' ? 'selected' : '' }}>Nama A–Z</option>
-                    <option value="nama_desc"      {{ $sort == 'nama_desc' ? 'selected' : '' }}>Nama Z–A</option>
-                    <option value="angkatan_desc"  {{ $sort == 'angkatan_desc' ? 'selected' : '' }}>Angkatan Terbaru</option>
-                    <option value="angkatan_asc"   {{ $sort == 'angkatan_asc' ? 'selected' : '' }}>Angkatan Terlama</option>
+                    <option value="nama_asc" {{ $sort == 'nama_asc' ? 'selected' : '' }}>Nama A–Z</option>
+                    <option value="nama_desc" {{ $sort == 'nama_desc' ? 'selected' : '' }}>Nama Z–A</option>
                 </select>
             </div>
-            <div class="filter-group ml-auto">
-                <div class="filter-label">Sumber Data</div>
-                <div style="display:flex; gap:6px;">
-                    <a href="{{ request()->fullUrlWithQuery(['sumber' => 'semua']) }}"
-                        class="source-tab {{ $sumber === 'semua' ? 'active' : '' }}">Semua</a>
-                    <a href="{{ request()->fullUrlWithQuery(['sumber' => 'lokal']) }}"
-                        class="source-tab {{ $sumber === 'lokal' ? 'active' : '' }}">📋 Lokal</a>
-                    @if($keyword)
-                    <a href="{{ request()->fullUrlWithQuery(['sumber' => 'pddikti']) }}"
-                        class="source-tab {{ $sumber === 'pddikti' ? 'active' : '' }}">🌐 PDDIKTI</a>
-                    @endif
+            <div class="filter-group" style="margin-left: auto;">
+                <div class="filter-label" style="text-align: right;">Sumber</div>
+                <div style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #818cf8;">
+                    🌐 PDDIKTI Real-Time
                 </div>
             </div>
         </div>
-        @endif
     </form>
 </div>
 
-{{-- UNIFIED SEARCH RESULTS --}}
-@if($keyword || $angkatan || $prodi)
-    @php $displayedCount = $allResults ? count($allResults) : 0; @endphp
-    @if($displayedCount === 0)
-        <div class="results-card">
-            <div class="empty">
-                <div class="empty-icon">📭</div>
-                <div class="empty-title">Tidak ada data ditemukan</div>
-                <div class="empty-sub">Coba ubah kata kunci atau filter pencarian Anda.</div>
-            </div>
+{{-- SEARCH RESULTS --}}
+@if($keyword)
+    @php $displayedCount = count($results); @endphp
+
+    @if($pddiktiError)
+        <div class="alert alert-warning" style="margin-top: 10px;">⚠️ {{ $pddiktiError }}</div>
+    @endif
+
+    @if($displayedCount === 0 && !$pddiktiError)
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 60px 20px; text-align: center; color: var(--muted);">
+            <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
+            <div style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px;">Tidak ada data ditemukan</div>
+            <div style="font-size: 13px;">Coba ubah kata kunci atau filter pencarian Anda.</div>
         </div>
-    @else
-        <div class="section-header" style="margin-top:20px;">
-            <div class="section-title">📊 Hasil Pencarian ({{ $displayedCount }} data)</div>
-            @if(isset($pddiktiError) && $pddiktiError)
-                <span class="badge badge-warning" style="font-size:11px;">⚠️ Sebagian data mungkin gagal dimuat dari PDDIKTI</span>
-            @endif
+    @elseif($displayedCount > 0)
+        <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">📊</span>
+            <span style="font-size: 14px; font-weight: 800;">Hasil Pencarian ({{ $displayedCount }} data)</span>
         </div>
         
-        <div class="results-card">
-            <div class="table-wrap">
-                <table>
+        <div style="background: rgba(30, 34, 53, 0.4); border-radius: 16px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
                     <thead>
-                            <th>Nama</th>
-                            <th>NIM</th>
-                            <th>Program Studi</th>
-                            <th>Angkatan</th>
-                            <th>Status Kelulusan</th>
-                            <th>Status Data</th>
-                            <th></th>
+                        <tr style="background: rgba(15, 17, 23, 0.5); border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                            <th style="padding: 14px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; width: 30%;">Nama</th>
+                            <th style="padding: 14px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; width: 18%;">NIM</th>
+                            <th style="padding: 14px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; width: 22%;">Program Studi</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; width: 10%;">Angkatan</th>
+                            <th style="padding: 14px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; width: 10%;">Status</th>
+                            <th style="padding: 14px 20px; text-align: right; width: 10%;"></th>
+                        </tr>
                     </thead>
                     <tbody>
-                        @foreach($allResults as $item)
-                        <tr data-sumber="{{ $item['sumber'] }}" @if($item['sumber'] === 'pddikti') data-pddikti-id="{{ $item['id'] }}" @endif>
-                            <td>
-                                <div style="font-weight:600;">{{ $item['nama'] }}</div>
-                                @if($item['sumber'] === 'pddikti' && isset($item['pt']))
-                                    <div style="font-size:11px; color:var(--muted);">🏢 {{ $item['pt'] }}</div>
-                                @elseif($item['sumber'] === 'lokal' && isset($item['model']) && $item['model']->domisili)
-                                    <div style="font-size:11px; color:var(--muted);">📍 {{ $item['model']->domisili }}</div>
-                                @endif
+                        @foreach($results as $item)
+                        <tr data-pddikti-id="{{ $item['id'] }}" style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                            <td style="padding: 16px 20px;">
+                                <div style="font-weight: 700; font-size: 13px; color: #f1f5f9; text-transform: uppercase; margin-bottom: 2px;">{{ $item['nama'] }}</div>
+                                <div style="font-size: 11px; color: #64748b;">{{ $item['pt'] }}</div>
                             </td>
-                            <td><code style="color:var(--accent-light);">{{ $item['nim'] }}</code></td>
-                            <td>
-                                <div>{{ $item['prodi'] }}</div>
-                                @if($item['sumber'] === 'lokal' && isset($item['model']) && $item['model']->fakultas)
-                                    <div style="font-size:11px; color:var(--muted);">{{ $item['model']->fakultas }}</div>
-                                @elseif($item['sumber'] === 'pddikti' && isset($item['jenjang']) && $item['jenjang'] !== '-')
-                                    <div style="font-size:11px; color:var(--muted);">{{ $item['jenjang'] }}</div>
-                                @endif
+                            <td style="padding: 16px 20px;">
+                                <span style="color: #818cf8; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 12px; letter-spacing: 0.3px;">{{ $item['nim'] ?? '-' }}</span>
                             </td>
-                            <td class="col-angkatan">
-                                @if($item['sumber'] === 'lokal')
-                                    <span style="font-weight:600;">{{ $item['angkatan'] ?? '-' }}</span>
+                            <td style="padding: 16px 20px;">
+                                <div style="font-size: 12px; font-weight: 600; color: #e2e8f0;">{{ $item['prodi'] ?? '-' }}</div>
+                            </td>
+                            <td style="padding: 16px 16px; text-align: center;">
+                                <span class="col-angkatan" style="font-weight: 700; color: #f1f5f9; font-size: 13px;">{{ $item['angkatan'] ?? '-' }}</span>
+                            </td>
+                            <td style="padding: 16px 16px; text-align: center;">
+                                <span class="col-status-lulus" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; font-weight: 600;">
+                                    <span class="loading-dot"></span>
+                                </span>
+                            </td>
+                            <td style="padding: 16px 20px; text-align: right;">
+                                @if($item['id'])
+                                <a href="{{ route('search.detail', $item['id']) }}" style="text-decoration: none; color: #818cf8; font-size: 12px; font-weight: 700; padding: 7px 16px; border-radius: 8px; border: 1px solid rgba(129, 140, 248, 0.2); background: rgba(99, 102, 241, 0.05); white-space: nowrap;">
+                                    Lihat Detail
+                                </a>
                                 @else
-                                    <span class="text-muted" style="font-size:11px;">🔄 Memuat...</span>
-                                @endif
-                            </td>
-                            <td class="col-status-lulus">
-                                @if($item['sumber'] === 'lokal')
-                                    @php
-                                        $isLulus = !empty($item['tahun_lulus']);
-                                    @endphp
-                                    <span class="badge {{ $isLulus ? 'badge-success' : 'badge-secondary' }}" style="font-size:11px;">
-                                        {{ $isLulus ? '🎓 Lulus' : 'Belum Lulus' }}
-                                    </span>
-                                @else
-                                    <span class="text-muted" style="font-size:11px;">🔄 Memuat...</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($item['sumber'] === 'lokal')
-                                    @php
-                                        $statusClass = match(true) {
-                                            str_contains($item['status'], 'Teridentifikasi') => 'badge-success',
-                                            str_contains($item['status'], 'Verifikasi')      => 'badge-warning',
-                                            str_contains($item['status'], 'Ditemukan')       => 'badge-secondary',
-                                            default                                           => 'badge-secondary',
-                                        };
-                                    @endphp
-                                    <span class="badge badge-local" style="margin-bottom:3px;">📋 Lokal</span><br>
-                                    <span class="badge {{ $statusClass }}" style="font-size:10px;">{{ $item['status'] }}</span>
-                                @else
-                                    <span class="badge badge-pddikti" style="margin-bottom:3px;">🌐 PDDIKTI</span><br>
-                                    @if(isset($item['status_mhs']) && $item['status_mhs'])
-                                        <span class="badge {{ str_starts_with(strtolower($item['status_mhs']), 'lulus') ? 'badge-success' : 'badge-secondary' }}" style="font-size:10px;">
-                                            {{ $item['status_mhs'] }}
-                                        </span>
-                                    @endif
-                                @endif
-                            </td>
-                            <td>
-                                @if($item['sumber'] === 'lokal')
-                                    <a href="{{ route('alumni.show', $item['id']) }}" class="btn btn-outline btn-sm">Lihat Detail</a>
-                                @elseif($item['id'])
-                                    <a href="{{ route('pddikti.detail', $item['id']) }}" class="btn btn-outline btn-sm"
-                                        @guest onclick="return confirm('Login sebagai admin untuk simpan/track alumni dari PDDIKTI ke database.')" @endguest>
-                                        Lihat Detail
-                                    </a>
+                                <span style="color: #64748b; font-size: 12px;">-</span>
                                 @endif
                             </td>
                         </tr>
@@ -178,152 +137,66 @@
         </div>
     @endif
 @else
-{{-- Landing state — sebelum search --}}
-<div style="text-align:center; padding:20px 0 10px;">
-    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:8px;">
-        <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 20px; text-align:left; min-width:180px;">
-            <div style="font-size:22px; margin-bottom:8px;">📋</div>
-            <div style="font-weight:600; font-size:13px; margin-bottom:4px;">Data Alumni Lokal</div>
-            <div style="color:var(--muted); font-size:12px;">Diinput & diverifikasi admin kampus</div>
-        </div>
-        <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 20px; text-align:left; min-width:180px;">
-            <div style="font-size:22px; margin-bottom:8px;">🌐</div>
-            <div style="font-weight:600; font-size:13px; margin-bottom:4px;">PDDIKTI Real-Time</div>
-            <div style="color:var(--muted); font-size:12px;">Dari server Kemdikbud langsung</div>
-        </div>
-        <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 20px; text-align:left; min-width:180px;">
-            <div style="font-size:22px; margin-bottom:8px;">🎓</div>
-            <div style="font-weight:600; font-size:13px; margin-bottom:4px;">Status Kelulusan</div>
-            <div style="color:var(--muted); font-size:12px;">Filter angkatan & tahun lulus</div>
-        </div>
+{{-- Landing state --}}
+<div style="display: flex; gap: 24px; justify-content: center; margin-top: 60px; flex-wrap: wrap;">
+    <div class="info-box">
+        <div style="font-size: 28px; margin-bottom: 15px;">🌐</div>
+        <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 5px;">PDDIKTI Real-Time</h4>
+        <p style="font-size: 12px; color: var(--muted); line-height: 1.4;">Data langsung dari server Kemdikbud</p>
+    </div>
+    <div class="info-box">
+        <div style="font-size: 28px; margin-bottom: 15px;">🎓</div>
+        <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 5px;">Status Kelulusan</h4>
+        <p style="font-size: 12px; color: var(--muted); line-height: 1.4;">Filter angkatan & tahun lulus</p>
+    </div>
+    <div class="info-box">
+        <div style="font-size: 28px; margin-bottom: 15px;">📊</div>
+        <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 5px;">Sorting & Filter</h4>
+        <p style="font-size: 12px; color: var(--muted); line-height: 1.4;">Urutkan dan filter hasil pencarian</p>
     </div>
 </div>
+<style>
+    .info-box {
+        background: rgba(30, 34, 53, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
+        padding: 30px 25px; text-align: left; width: 260px; transition: all 0.3s ease;
+    }
+    .info-box:hover { background: rgba(30, 34, 53, 0.8); border-color: rgba(168, 85, 247, 0.3); transform: translateY(-5px); }
+</style>
 @endif
 
-{{-- DEMO MODAL --}}
-<div id="demoModal" class="demo-modal" style="display:none;">
-    <div class="demo-modal-content">
-        <div class="demo-modal-icon">🚀</div>
-        <h4 style="font-size: 22px;">Pengumuman</h4>
-        <p style="font-size: 16px; line-height: 1.6;">Website ini masih dalam tahap <strong>Demo & Pengembangan</strong>.</p>
-        <div style="margin-top: 15px;">
-            <button id="closeDemoModal" class="btn btn-primary" style="padding: 12px 40px; font-size: 16px; border-radius: 12px; font-weight: 600;">Oke</button>
-        </div>
-    </div>
-</div>
-
 <style>
-.demo-modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-.demo-modal-content {
-    background: var(--card);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 28px;
-    padding: 50px 40px;
-    text-align: center;
-    max-width: 480px;
-    width: 90%;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-    animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-@keyframes modalPop {
-    from { opacity: 0; transform: scale(0.85) translateY(20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-}
-.demo-modal-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
-}
-.demo-modal h4 {
-    margin: 0 0 15px;
-    font-weight: 700;
-}
-.demo-modal p {
-    color: var(--muted);
-    margin-bottom: 30px;
-}
+    .loading-dot {
+        display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+        border: 2px solid #475569; border-top-color: #818cf8;
+        animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Demo Modal Logic
-    const modal = document.getElementById('demoModal');
-    const btn = document.getElementById('closeDemoModal');
-    
-    if (!sessionStorage.getItem('demo_notified')) {
-        modal.style.display = 'flex';
-    }
-    
-    btn.onclick = function() {
-        modal.style.opacity = '0';
-        modal.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            modal.style.display = 'none';
-            sessionStorage.setItem('demo_notified', 'true');
-        }, 300);
-    }
-
-    // Existing PDDIKTI Detail Fetch Logic
-    const pddiktiRows = document.querySelectorAll('tr[data-pddikti-id]');
-    
-    pddiktiRows.forEach(row => {
+    document.querySelectorAll('tr[data-pddikti-id]').forEach(row => {
         const id = row.getAttribute('data-pddikti-id');
         const colAngkatan = row.querySelector('.col-angkatan');
-        const colStatusLulus = row.querySelector('.col-status-lulus');
-        
+        const colStatus = row.querySelector('.col-status-lulus');
         if (!id) return;
         
         fetch(`/api/pddikti/detail/${encodeURIComponent(id)}`)
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.error) {
-                    if (colAngkatan) colAngkatan.innerHTML = '<span class="text-danger" style="font-size:11px;">Gagal</span>';
-                    if (colStatusLulus) colStatusLulus.innerHTML = '<span class="text-danger" style="font-size:11px;">Gagal</span>';
+                    if (colStatus) colStatus.innerHTML = '<span style="font-size:11px; color:#64748b;">-</span>';
                     return;
                 }
-                
-                if (colAngkatan) colAngkatan.innerHTML = `<span style="font-weight:600;">${data.angkatan || '-'}</span>`;
-                
+                if (colAngkatan && data.angkatan) colAngkatan.textContent = data.angkatan;
                 const isLulus = data.is_lulus;
-                const statusText = isLulus ? '🎓 Lulus' : 'Belum Lulus';
-                const badgeClass = isLulus ? 'badge-success' : 'badge-secondary';
-                
-                if (colStatusLulus) {
-                    colStatusLulus.innerHTML = `<span class="badge ${badgeClass}" style="font-size:11px;">${statusText}</span>`;
-                }
-                
-                const statusDataCol = row.cells[5];
-                if (data.status && statusDataCol) {
-                    const statusVal = data.status.toLowerCase();
-                    const subBadgeClass = statusVal.startsWith('lulus') ? 'badge-success' : 'badge-secondary';
-                    
-                    const existingSubBadge = statusDataCol.querySelector('.badge:not(.badge-pddikti)');
-                    if (existingSubBadge) {
-                        existingSubBadge.className = `badge ${subBadgeClass}`;
-                        existingSubBadge.style.fontSize = '10px';
-                        existingSubBadge.innerText = data.status;
-                    } else {
-                        statusDataCol.innerHTML += `<br><span class="badge ${subBadgeClass}" style="font-size:10px; margin-top:3px;">${data.status}</span>`;
-                    }
-                }
+                const txt = isLulus ? '🎓 Lulus' : (data.status || '-');
+                const c = isLulus ? '#34d399' : '#94a3b8';
+                const bg = isLulus ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.1)';
+                if (colStatus) colStatus.innerHTML = `<span style="background:${bg};color:${c};padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap;">${txt}</span>`;
             })
-            .catch(err => {
-                console.error('PDDIKTI Detail Fetch Error:', err);
-                if (colAngkatan) colAngkatan.innerHTML = '<span class="text-danger" style="font-size:11px;">Error</span>';
-                if (colStatusLulus) colStatusLulus.innerHTML = '<span class="text-danger" style="font-size:11px;">Error</span>';
-            });
+            .catch(() => { if (colStatus) colStatus.innerHTML = '<span style="font-size:11px;color:#64748b;">-</span>'; });
     });
 });
 </script>
-@if(isset($allResults) && count($allResults) > 0)
-{{-- Removed duplicate script block script content moved above --}}
-@endif
 @endsection

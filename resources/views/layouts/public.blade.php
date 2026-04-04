@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Cari Alumni — Sistem Pelacakan Alumni')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0f1117;
@@ -119,6 +119,7 @@
         .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--subtle); font-size: 12px; font-weight: 600; }
         .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
+
         /* RESPONSIVE */
         @media (max-width: 640px) {
             .hero h1 { font-size: 24px; }
@@ -132,28 +133,63 @@
 <body>
     <!-- NAVBAR -->
     <nav class="navbar">
-        <a href="{{ route('search') }}" class="nav-brand">
-            <div class="logo">🎓</div>
-            <div>
-                <div class="brand-name">Sistem Pelacakan Alumni</div>
-                <div class="brand-sub">PDDIKTI · Real-Time</div>
+        <div style="display: flex; align-items: center; gap: 40px;">
+            <a href="{{ route('home') }}" class="nav-brand">
+                <div class="logo">🎓</div>
+                <div>
+                    <div class="brand-name">Alumni Enrichment</div>
+                    <div class="brand-sub">Sistem Pelacakan</div>
+                </div>
+            </a>
+
+            {{-- MAIN NAV LINKS --}}
+            <div style="display: flex; gap: 20px;">
+                <a href="{{ route('search') }}" class="nav-link-main {{ request()->routeIs('search*') ? 'active' : '' }}">
+                    Cari Mahasiswa
+                </a>
+                <a href="{{ route('alumni_umm.tracking') }}" class="nav-link-main {{ request()->routeIs('alumni_umm.tracking*') ? 'active' : '' }}">
+                    Tracking Alumni UMM
+                </a>
             </div>
-        </a>
+        </div>
         <div class="nav-right">
             @auth
                 @if(auth()->user()->isAdmin())
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline btn-sm">⚙️ Dashboard Admin</a>
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline btn-sm">⚙️ Management</a>
                 @endif
                 <form action="{{ route('logout') }}" method="POST" style="display:inline">
                     @csrf
                     <button type="submit" class="btn-ghost btn-sm">Keluar</button>
                 </form>
-                <span style="font-size:12px; color:var(--muted)">{{ auth()->user()->name }}</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                    <span style="font-size:12px; font-weight: 700; color: #818cf8;">{{ auth()->user()->role === 'admin' ? 'ADMIN' : 'MEMBER' }}</span>
+                    <span style="font-size:10px; color:var(--muted)">{{ auth()->user()->name }}</span>
+                </div>
             @else
-                <a href="{{ route('login') }}" class="btn btn-outline btn-sm">🔐 Login</a>
+                <a href="{{ route('login') }}" class="btn btn-primary btn-sm" style="background: var(--bg-hover); border: 1px solid var(--border);">🔐 Login</a>
             @endauth
         </div>
     </nav>
+
+    <style>
+        .nav-link-main {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .nav-link-main:hover {
+            color: var(--text);
+            background: var(--hover);
+        }
+        .nav-link-main.active {
+            color: var(--accent-light);
+            background: rgba(99, 102, 241, 0.1);
+        }
+    </style>
 
     <main class="main">
         @if(session('success'))
