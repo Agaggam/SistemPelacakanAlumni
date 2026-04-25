@@ -1,120 +1,116 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel">
-  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
-  <img src="https://img.shields.io/badge/API-PDDIKTI-0ea5e9?style=for-the-badge&logo=google-cloud&logoColor=white" alt="PDDIKTI API">
-  <img src="https://img.shields.io/badge/Status-Development-orange?style=for-the-badge" alt="Status">
-</p>
+# Sistem Pelacakan Alumni (Alumni Tracking System)
 
-<h1 align="center">🎓 Sistem Pelacakan Alumni (Real-Time Edition)</h1>
-<p align="center">
-  Platform pelacakan alumni cerdas yang mengintegrasikan data lokal kampus dengan data <strong>PDDIKTI secara Live</strong> melalui API resmi.
-</p>
+Sistem Pelacakan Alumni adalah sebuah aplikasi berbasis web yang dibangun menggunakan **Laravel 12** untuk mengelola, melacak, dan memverifikasi data lulusan (alumni) perguruan tinggi. Aplikasi ini didesain secara khusus untuk menangani data dalam jumlah besar (ratusan ribu baris) serta mampu memperkaya data kontak alumni secara otomatis melalui sistem *Scraping* dan integrasi API PDDIKTI.
 
 ---
 
-## Tentang Proyek
+## ✨ Fitur Utama
 
-Sistem ini dikembangkan untuk memudahkan pengelola perguruan tinggi dalam memverifikasi status kelulusan alumni secara akurat. Berbeda dengan sistem pencatatan biasa, aplikasi ini menggunakan **Integrasi API Langsung** ke server PDDIKTI Kemendikbudristek untuk menyajikan data yang selalu mutakhir.
-
-### Teknologi Integrasi Data
-Proyek ini **bukan** menggunakan library pihak ketiga (wrapper), melainkan menggunakan **API PDDIKTI secara langsung** (`api-pddikti.kemdiktisaintek.go.id`) melalui:
-- **Laravel HTTP Client (Guzzle)** untuk request server-side.
-- **AJAX (Fetching API)** untuk pemuatan data detail secara asinkron agar performa website tetap ringan dan cepat.
-
----
-
-## Fitur Unggulan
-
--  **Real-Time API Search** — Mencari data mahasiswa langsung ke database nasional Kemdikbud.
--  **Async Detail Loader** — Memuat detail "Angkatan" dan "Status Lulus" secara otomatis di latar belakang.
--  **Smart Filtering** — Filter dinamis yang hanya muncul saat hasil pencarian tersedia.
--  **Dual Source Integration** — Menggabungkan hasil pencarian dari database lokal (Manual/CSV) dan PDDIKTI secara transparan.
+- **Manajemen Data Skala Besar:** Dioptimalkan untuk mengelola lebih dari 140.000+ data alumni dengan cepat.
+- **Integrasi PDDIKTI API:** Memvalidasi dan melengkapi status akademik alumni secara langsung dari database nasional PDDIKTI.
+- **Auto-Enrichment (Pencarian Sosmed Otomatis):** Fitur scraping cerdas untuk menemukan profil sosial media alumni (LinkedIn, Instagram, Facebook, TikTok) berdasarkan nama dan program studi.
+- **Dashboard Analitik & Tracking:** Memantau persebaran alumni, status pekerjaan, dan history pelacakan.
+- **Dukungan Multi-Database:** Bisa dijalankan secara lokal (SQLite) maupun Production (MySQL/MariaDB).
 
 ---
 
-## Hasil Pengujian (Aspek Kualitas & QA)
+## 🛠 Teknologi yang Digunakan
 
-Laporan pengujian ini disusun berdasarkan kriteria kualitas yang ditetapkan pada perancangan sistem (Daily Project 2).
-
-### 1. Pengujian Fungsional (Functionality)
-| No | Fitur | Skenario | Hasil Diharapkan | Status |
-|----|-------|----------|------------------|--------|
-| 1 | Pencarian Global | Input nama/NIM di halaman publik | Muncul hasil dari DB Lokal & PDDIKTI | ✅ OK |
-| 2 | Async Detail | Hover/Load tabel pencarian | Placeholders "Memuat..." berubah jadi data asli | ✅ OK |
-| 3 | Filter Dinamis | Mengubah dropdown Angkatan/Prodi | Hasil pencarian ter-filter secara instant | ✅ OK |
-| 4 | Admin Dashboard | Pantau data tersimpan | Grafik Chart.js tampil akurat sesuai data lokal | ✅ OK |
-| 5 | Demo Modal | Masuk halaman utama pertama kali | Muncul bubble peringatan demo & tombol Oke | ✅ OK |
-
-### 2. Pengujian Kinerja & Efisiensi (Performance)
-| No | Parameter | Metode | Hasil | Status |
-|----|-----------|--------|-------|--------|
-| 1 | Kecepatan Muat | Initial Search | < 2 detik (Karena detail dimuat asinkron) | ✅ OK |
-| 2 | Responsivitas UI | AJAX Fetching | Row diupdate satu persatu tanpa freezing | ✅ OK |
-| 3 | Penggunaan API | GET Requests | Menggunakan timeout 10s & bypass SSL local | ✅ OK |
-
-### 3. Pengujian UI/UX (Usability)
-| No | Elemen | Kriteria Kualitas | Hasil | Status |
-|----|--------|-------------------|-------|--------|
-| 1 | Demo Modal | Glassmorphism & Animasi | Tampilan premium, blur background, animasi pop | ✅ OK |
-| 2 | Status Badges | Color Coding | Lulus (Hijau), Belum Lulus (Abu), Error (Merah) | ✅ OK |
-| 3 | Navigation | Sidebar Admin | Mudah berpindah antara Dashboard & Publik | ✅ OK |
-
-### 4. Integritas & Keamanan Data (Security)
-| No | Aspek | Skenario | Hasil | Status |
-|----|-------|----------|-------|--------|
-| 1 | Auth Access | Akses /dashboard tanpa login | Redirect otomatis ke halaman /login | ✅ OK |
-| 2 | CSRF Protection | Submit form pencarian/CRUD | Token divalidasi oleh Middleware Laravel | ✅ OK |
-| 3 | Data Consistency| Simpan dari PDDIKTI | Data tersimpan permanen di SQLite lokal | ✅ OK |
+- **Backend:** Laravel 12.x, PHP 8.2+
+- **Database:** MySQL / MariaDB (Disarankan untuk Production) & SQLite
+- **Frontend:** Blade Templating, Vanilla CSS / Tailwind (opsional)
+- **Paket Tambahan Utama:** `ilhamrisky/pddiktiapi`
 
 ---
 
-## Cara Menjalankan
+## ⚙️ Prasyarat (Prerequisites)
 
-1.  **Clone & Install**
-    ```bash
-    git clone https://github.com/username/SistemPelacakanAlumni.git
-    composer install && npm install
-    ```
-2.  **Environment Setup**
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    ```
-3.  **Database Strategy** (SQLite)
-    ```bash
-    # Buat file database kosong
-    touch database/database.sqlite
-    # Jalankan migrasi
-    php artisan migrate --seed
-    ```
-4.  **Running**
-    ```bash
-    php artisan serve
-    # Dan di terminal lain:
-    npm run dev
-    ```
+Sebelum menginstal aplikasi ini, pastikan komputer/server kamu sudah terpasang:
+
+- **PHP** minimal versi 8.2
+- **Composer** versi terbaru
+- **MySQL / MariaDB** (Disarankan menggunakan Laragon atau XAMPP)
+- **Node.js & NPM** (untuk build assets)
 
 ---
 
-## Oleh: 
-- **Dibuat Oleh:** Muhammad Fadhil YZ & Asisten 
-- **Tujuan:** Projek Pengembangan Sistem Informasi
-- **Status:** Open Source 
+## 🚀 Panduan Instalasi (Local Development)
+
+1. **Clone repositori ini:**
+
+   ```bash
+   git clone <url-repo-kamu>
+   cd SistemPelacakanAlumni
+   ```
+2. **Install dependensi PHP via Composer:**
+
+   ```bash
+   composer install
+   ```
+3. **Install dependensi Frontend via NPM:**
+
+   ```bash
+   npm install
+   npm run build
+   ```
+4. **Konfigurasi Environment:**
+   Salin file `.env.example` menjadi `.env`:
+
+   ```bash
+   copy .env.example .env  # Windows
+   cp .env.example .env    # Linux/Mac
+   ```
+5. **Generate Application Key:**
+
+   ```bash
+   php artisan key:generate
+   ```
+6. **Konfigurasi Database:**
+   Buka file `.env` dan atur koneksi ke database kamu. Disarankan menggunakan MySQL:
+
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=nama_database_kamu
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+7. **Migrasi Database:**
+   Jalankan perintah ini untuk membuat struktur tabel di database kamu.
+
+   ```bash
+   php artisan migrate
+   ```
+8. **(Opsional) Import Data Skala Besar:**
+   Jika kamu memiliki file `.sql` yang dipisah-pisah (misal per 50.000 data), lakukan import secara manual lewat phpMyAdmin ke database yang sudah kamu atur di atas.
+9. **Jalankan Aplikasi:**
+
+   ```bash
+   php artisan serve
+   ```
+
+   Aplikasi bisa diakses di `http://127.0.0.1:8000`
 
 ---
 
-*Catatan Penting:* Website ini berstatus **Demo**. Data Mahasiswa disimpan menggunakan **Database Lokal (SQLite)** & blum terintegrasi dengan DB Cloud. Data PDDIKTI yang tampil berasal dari API publik Kemdikbud.
--
+## 🖥 Menjalankan Proses Background (Queue)
 
-## Teknologi
+Karena aplikasi ini melakukan scraping data (Auto-Enrichment) yang memakan waktu lama, proses tersebut dijalankan di belakang layar menggunakan sistem antrean (*Queue*).
 
-| Layer | Teknologi |
-|-------|-----------|
-| Backend | Laravel 12, PHP 8.2+ |
-| Database | SQLite 3 |
-| Frontend | Blade Template, Vanilla CSS, Chart.js |
-| Auth | Laravel Session Auth |
-| Algorithm | PHP similar_text(), CRC32 seed, weighted scoring |
+Pastikan kamu membuka terminal baru dan menjalankan perintah ini agar proses pencarian sosial media berjalan:
+
+```bash
+php artisan queue:work
+```
 
 ---
 
+## 📝 Catatan Khusus
+
+- Jika mengalami error terkait kolom `data_source` yang tidak ditemukan, pastikan kamu sudah menjalankan migrasi terbaru atau sudah melakukan import *file struktur tabel yang paling baru*.
+- Konfigurasi API Premium untuk keperluan *scraping* (seperti Google Search API) dapat dimasukkan pada file `.env`.
+
+---
+
+*Dibuat untuk memudahkan pelacakan rekam jejak lulusan demi masa depan pendidikan yang lebih baik.*
