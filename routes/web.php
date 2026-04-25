@@ -8,6 +8,7 @@ use App\Http\Controllers\PddiktiController;
 use App\Http\Controllers\AlumniUmmController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\EnrichmentController;
+use App\Http\Controllers\ScrapingController;
 use Illuminate\Support\Facades\Route;
 
 // ─── GATE: Home Selection (Cari Mahasiswa vs Tracking Alumni) ────────────────
@@ -54,6 +55,8 @@ Route::middleware(['auth'])->group(function () {
     // Enrichment Search API (AJAX)
     Route::get('/api/enrichment/search', [EnrichmentController::class, 'searchGoogle'])->name('api.enrichment.search');
     Route::get('/api/enrichment/links', [EnrichmentController::class, 'getSearchLinks'])->name('api.enrichment.links');
+    Route::post('/api/enrichment/single', [ScrapingController::class, 'enrichSingle'])->name('api.enrichment.single');
+
 });
 
 // ─── ADMIN ONLY (auth + role=admin) ──────────────────────────────────────────

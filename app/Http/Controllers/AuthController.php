@@ -44,7 +44,7 @@ class AuthController extends Controller
     {
         $user = Auth::user();
         if ($user->isAdmin()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('alumni.index');
         }
         return redirect()->route('search');
     }

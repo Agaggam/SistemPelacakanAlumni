@@ -43,9 +43,7 @@ class PddiktiController extends Controller
         }
     }
 
-    /**
-     * Halaman pencarian langsung ke PDDIKTI.
-     */
+
     public function index(Request $request)
     {
         $keyword  = $request->input('q', '');
@@ -147,6 +145,18 @@ class PddiktiController extends Controller
     private function normalizeItem(array $item): array
     {
         $status = $item['status'] ?? $item['status_mahasiswa'] ?? $item['status_mahasiswa_saat_ini'] ?? $item['status_terakhir'] ?? null;
+
+        // Prioritas angkatan: tahun dari tanggal_masuk > field angkatan > NIM
+        $tglMasuk = $item['tanggal_masuk'] ?? $item['tgl_masuk'] ?? $item['mulai_kuliah'] ?? null;
+        if ($tglMasuk && preg_match('/^(19|20)\d{2}/', $tglMasuk, $m)) {
+            $angkatan = $m[0];
+        } else {
+            $angkatan = $item['angkatan'] ?? null;
+            if (!$angkatan && isset($item['nim']) && preg_match('/^(20[0-9]{2}|19[0-9]{2})/', $item['nim'], $matches)) {
+                $angkatan = $matches[1];
+            }
+        }
+
         return [
             'id'       => $item['id'] ?? $item['id_mahasiswa'] ?? null,
             'nama'     => $item['nama_mahasiswa'] ?? $item['nama'] ?? '-',
@@ -155,7 +165,7 @@ class PddiktiController extends Controller
             'pt'       => $item['nama_pt'] ?? $item['pt'] ?? '-',
             'jenjang'  => $item['jenjang'] ?? '-',
             'status'   => $status,
-            'angkatan' => $item['angkatan'] ?? null,
+            'angkatan' => $angkatan,
             'is_lulus' => $status && str_starts_with(strtolower($status), 'lulus'),
         ];
     }

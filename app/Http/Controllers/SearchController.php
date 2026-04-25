@@ -50,13 +50,20 @@ class SearchController extends Controller
                         if (!is_array($item)) continue;
                         $nim = $item['nim'] ?? null;
                         
-                        $angkatanApi = $item['angkatan'] ?? $item['terdaftar']['angkatan'] ?? null;
+                        // Prioritas: tahun dari tanggal_masuk > field angkatan > NIM
+                        $tglMasuk = $item['tanggal_masuk'] ?? $item['tgl_masuk'] ?? $item['mulai_kuliah'] ?? null;
+                        if ($tglMasuk && preg_match('/^(19|20)\d{2}/', $tglMasuk, $m)) {
+                            $angkatanApi = $m[0];
+                        } else {
+                            $angkatanApi = $item['angkatan'] ?? $item['terdaftar']['angkatan'] ?? null;
+                        }
                         if (!$angkatanApi && $nim && preg_match('/^(20[0-9]{2}|19[0-9]{2})/', $nim, $matches)) {
                             $angkatanApi = $matches[1];
                         }
 
                         // Filter by dropdowns
-                        $passAngkatan = !$angkatan || $angkatanApi == $angkatan;
+                        // Toleransi jika API tidak mengembalikan angkatan: biarkan lolos agar tidak menyebabkan "No results found"
+                        $passAngkatan = !$angkatan || $angkatanApi == $angkatan || empty($angkatanApi);
                         $passProdi = !$prodi || stripos($item['nama_prodi'] ?? $item['prodi'] ?? '', $prodi) !== false;
 
                         if ($passAngkatan && $passProdi) {
@@ -146,8 +153,13 @@ class SearchController extends Controller
                 ?? $detail['status_mahasiswa']
                 ?? null;
 
-            // Extract angkatan
-            $angkatan = $detail['angkatan'] ?? $detail['terdaftar']['angkatan'] ?? null;
+            // Extract angkatan: prioritas dari tanggal_masuk
+            $tglMasuk = $detail['tanggal_masuk'] ?? $detail['tgl_masuk'] ?? $detail['mulai_kuliah'] ?? null;
+            if ($tglMasuk && preg_match('/^(19|20)\d{2}/', $tglMasuk, $m)) {
+                $angkatan = $m[0];
+            } else {
+                $angkatan = $detail['angkatan'] ?? $detail['terdaftar']['angkatan'] ?? null;
+            }
             if (!$angkatan && isset($detail['nim'])) {
                 if (preg_match('/^(20[0-9]{2}|19[0-9]{2})/', $detail['nim'], $matches)) {
                     $angkatan = $matches[1];

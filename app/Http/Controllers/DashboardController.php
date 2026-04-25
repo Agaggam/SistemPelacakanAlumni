@@ -139,16 +139,28 @@ class DashboardController extends Controller
             $raw  = $response->json();
             $items = $raw['mahasiswa'] ?? (isset($raw[0]) ? $raw : []);
 
-            $results = array_slice(array_map(fn($item) => [
-                'id'       => $item['id'] ?? null,
-                'nama'     => $item['nama_mahasiswa'] ?? $item['nama'] ?? '-',
-                'nim'      => $item['nim'] ?? '-',
-                'prodi'    => $item['nama_prodi'] ?? $item['prodi'] ?? '-',
-                'pt'       => $item['nama_pt'] ?? $item['pt'] ?? '-',
-                'status'   => $item['status_mahasiswa'] ?? null,
-                'angkatan' => $item['angkatan'] ?? null,
-                'is_lulus' => str_starts_with(strtolower($item['status_mahasiswa'] ?? ''), 'lulus'),
-            ], $items), 0, 10);
+            $results = array_slice(array_map(function($item) {
+                // Prioritas angkatan: tahun dari tanggal_masuk > field angkatan > NIM
+                $tglMasuk = $item['tanggal_masuk'] ?? $item['tgl_masuk'] ?? $item['mulai_kuliah'] ?? null;
+                if ($tglMasuk && preg_match('/^(19|20)\d{2}/', $tglMasuk, $m)) {
+                    $angkatan = $m[0];
+                } else {
+                    $angkatan = $item['angkatan'] ?? null;
+                    if (!$angkatan && isset($item['nim']) && preg_match('/^(20[0-9]{2}|19[0-9]{2})/', $item['nim'], $matches)) {
+                        $angkatan = $matches[1];
+                    }
+                }
+                return [
+                    'id'       => $item['id'] ?? null,
+                    'nama'     => $item['nama_mahasiswa'] ?? $item['nama'] ?? '-',
+                    'nim'      => $item['nim'] ?? '-',
+                    'prodi'    => $item['nama_prodi'] ?? $item['prodi'] ?? '-',
+                    'pt'       => $item['nama_pt'] ?? $item['pt'] ?? '-',
+                    'status'   => $item['status_mahasiswa'] ?? null,
+                    'angkatan' => $angkatan,
+                    'is_lulus' => str_starts_with(strtolower($item['status_mahasiswa'] ?? ''), 'lulus'),
+                ];
+            }, $items), 0, 10);
 
             return response()->json(['results' => $results, 'total' => count($items)]);
         } catch (\Exception $e) {

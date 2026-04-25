@@ -12,42 +12,98 @@ class AlumniUmmController extends Controller
      */
     public function tracking(Request $request)
     {
-        $keyword = $request->input('keyword');
-        $prodi = $request->input('prodi');
+        $keyword  = $request->input('keyword');
+        $prodi    = $request->input('prodi');
         $fakultas = $request->input('fakultas');
-        $sort = $request->input('sort', 'nama_asc');
-        
+        $sort     = $request->input('sort', 'nama_asc');
+
         $query = AlumniUmm::query();
-        
+
         if ($keyword) {
             $query->where(function($q) use ($keyword) {
                 $q->where('nama', 'LIKE', "%{$keyword}%")
                   ->orWhere('nim', 'LIKE', "%{$keyword}%");
             });
         }
-        
-        if ($prodi) {
-            $query->where('prodi', $prodi);
-        }
+        if ($prodi)    $query->where('prodi', $prodi);
+        if ($fakultas) $query->where('fakultas', $fakultas);
 
-        if ($fakultas) {
-            $query->where('fakultas', $fakultas);
-        }
+        match($sort) {
+            'nama_desc'        => $query->orderBy('nama', 'desc'),
+            'enrichment_desc'  => $query->orderByRaw("(
+                (CASE WHEN linkedin IS NOT NULL AND linkedin != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN instagram IS NOT NULL AND instagram != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN facebook IS NOT NULL AND facebook != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN tiktok IS NOT NULL AND tiktok != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN email IS NOT NULL AND email != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN no_hp IS NOT NULL AND no_hp != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN tempat_kerja IS NOT NULL AND tempat_kerja != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN posisi IS NOT NULL AND posisi != '' THEN 1 ELSE 0 END)
+            ) DESC"),
+            'enrichment_asc'   => $query->orderByRaw("(
+                (CASE WHEN linkedin IS NOT NULL AND linkedin != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN instagram IS NOT NULL AND instagram != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN facebook IS NOT NULL AND facebook != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN tiktok IS NOT NULL AND tiktok != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN email IS NOT NULL AND email != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN no_hp IS NOT NULL AND no_hp != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN tempat_kerja IS NOT NULL AND tempat_kerja != '' THEN 1 ELSE 0 END) +
+                (CASE WHEN posisi IS NOT NULL AND posisi != '' THEN 1 ELSE 0 END)
+            ) ASC"),
+            default => $query->orderBy('nama', 'asc'),
+        };
 
-        // Sorting
-        if ($sort == 'nama_desc') {
-            $query->orderBy('nama', 'desc');
-        } else {
-            $query->orderBy('nama', 'asc');
-        }
-        
         $alumni = $query->paginate(20);
-        
-        $prodiList = AlumniUmm::distinct()->pluck('prodi')->filter()->sort()->values();
-        $fakultasList = AlumniUmm::distinct()->pluck('fakultas')->filter()->sort()->values();
-        $totalAlumni = AlumniUmm::count();
-        
-        return view('alumni_umm.tracking', compact('alumni', 'keyword', 'prodi', 'fakultas', 'sort', 'prodiList', 'fakultasList', 'totalAlumni'));
+
+        $prodiList    = \Illuminate\Support\Facades\Cache::remember('prodi_list', 3600, fn() => AlumniUmm::distinct()->pluck('prodi')->filter()->sort()->values());
+        $fakultasList = \Illuminate\Support\Facades\Cache::remember('fakultas_list', 3600, fn() => AlumniUmm::distinct()->pluck('fakultas')->filter()->sort()->values());
+        $totalAlumni  = \Illuminate\Support\Facades\Cache::remember('total_alumni_count', 3600, fn() => AlumniUmm::count());
+
+        // ── Coverage Statistics ───────────────────────────────────────────────
+        $metrics = \Illuminate\Support\Facades\Cache::remember('alumni_tracking_metrics', 600, function() use ($totalAlumni) {
+            $coverageFields = ['linkedin','instagram','facebook','tiktok','email','no_hp','tempat_kerja','posisi'];
+            $coverage = [];
+            foreach ($coverageFields as $field) {
+                $found   = AlumniUmm::whereNotNull($field)->where($field, '!=', '')->count();
+                $scraped = AlumniUmm::whereNotNull($field)->where($field, '!=', '')->where('data_source', 'scraped')->count();
+                $coverage[$field] = [
+                    'found'      => $found,
+                    'scraped'    => $scraped,
+                    'generated'  => $found - $scraped,
+                    'pct'        => $totalAlumni > 0 ? round($found / $totalAlumni * 100, 1) : 0,
+                    'pct_scraped'=> $totalAlumni > 0 ? round($scraped / $totalAlumni * 100, 2) : 0,
+                ];
+            }
+
+            // Alumni with at least 1 field filled
+            $alumniWithAnyData = AlumniUmm::where(function($q) use ($coverageFields) {
+                $first = true;
+                foreach ($coverageFields as $f) {
+                    if ($first) { $q->whereNotNull($f)->where($f, '!=', ''); $first = false; }
+                    else        { $q->orWhere(fn($q2) => $q2->whereNotNull($f)->where($f, '!=', '')); }
+                }
+            })->count();
+
+            $overallCoverage  = $totalAlumni > 0 ? round($alumniWithAnyData / $totalAlumni * 100, 1) : 0;
+
+            // Accuracy = scraped / (scraped + generated) among enriched records
+            $totalScraped   = AlumniUmm::where('data_source', 'scraped')->count();
+            $totalGenerated = AlumniUmm::where('data_source', 'generated')->count();
+            $totalEnriched  = $totalScraped + $totalGenerated;
+            $overallAccuracy = $totalEnriched > 0 ? round($totalScraped / $totalEnriched * 100, 1) : 0;
+
+            return compact('coverage', 'alumniWithAnyData', 'overallCoverage', 'totalScraped', 'totalGenerated', 'overallAccuracy');
+        });
+
+        // Extract metrics to individual variables to pass to view
+        extract($metrics);
+
+        return view('alumni_umm.tracking', compact(
+            'alumni', 'keyword', 'prodi', 'fakultas', 'sort',
+            'prodiList', 'fakultasList', 'totalAlumni',
+            'coverage', 'overallCoverage', 'overallAccuracy',
+            'alumniWithAnyData', 'totalScraped', 'totalGenerated'
+        ));
     }
 
     /**

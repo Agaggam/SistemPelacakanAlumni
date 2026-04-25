@@ -26,5 +26,6 @@ class AlumniUmm extends Model
         'posisi',
         'status_kerja',
         'sosmed_perusahaan',
+        'data_source',  // 'scraped' | 'generated' | 'manual'
     ];
 }
